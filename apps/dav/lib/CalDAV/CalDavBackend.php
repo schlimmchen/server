@@ -301,12 +301,13 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$query = $this->db->getQueryBuilder();
 		$query->select($fields)
 			->from('calendars')
-			->orderBy('calendarorder', 'ASC');
+			->orderBy('calendarorder', 'ASC')
+			->where($query->expr()->isNull('deleted_at'));
 
 		if ($principalUri === '') {
-			$query->where($query->expr()->emptyString('principaluri'));
+			$query->andWhere($query->expr()->emptyString('principaluri'));
 		} else {
-			$query->where($query->expr()->eq('principaluri', $query->createNamedParameter($principalUri)));
+			$query->andWhere($query->expr()->eq('principaluri', $query->createNamedParameter($principalUri)));
 		}
 
 		$result = $query->execute();
@@ -967,7 +968,8 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$query->select(['id', 'uri', 'lastmodified', 'etag', 'calendarid', 'size', 'componenttype', 'classification'])
 			->from('calendarobjects')
 			->where($query->expr()->eq('calendarid', $query->createNamedParameter($calendarId)))
-			->andWhere($query->expr()->eq('calendartype', $query->createNamedParameter($calendarType)));
+			->andWhere($query->expr()->eq('calendartype', $query->createNamedParameter($calendarType)))
+			->andWhere($query->expr()->isNull('deleted_at'));
 		$stmt = $query->execute();
 
 		$result = [];
