@@ -87,6 +87,7 @@ use Sabre\VObject\Reader;
 use Sabre\VObject\Recur\EventIterator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
+use function time;
 
 /**
  * Class CalDavBackend
@@ -899,22 +900,27 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 				'shares' => $shares,
 			]));
 
-		$stmt = $this->db->prepare('DELETE FROM `*PREFIX*calendarobjects` WHERE `calendarid` = ? AND `calendartype` = ?');
-		$stmt->execute([$calendarId, self::CALENDAR_TYPE_CALENDAR]);
+		// $stmt = $this->db->prepare('DELETE FROM `*PREFIX*calendarobjects` WHERE `calendarid` = ? AND `calendartype` = ?');
+		// $stmt->execute([$calendarId, self::CALENDAR_TYPE_CALENDAR]);
 
-		$stmt = $this->db->prepare('DELETE FROM `*PREFIX*calendars` WHERE `id` = ?');
-		$stmt->execute([$calendarId]);
+		// $stmt = $this->db->prepare('DELETE FROM `*PREFIX*calendars` WHERE `id` = ?');
+		// $stmt->execute([$calendarId]);
+		$qb = $this->db->getQueryBuilder();
+		$markCalendarDeleted = $qb->update('calendars')
+			->set('deleted_at', $qb->createNamedParameter(time()))
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($calendarId)));
+		$markCalendarDeleted->executeUpdate();
 
-		$stmt = $this->db->prepare('DELETE FROM `*PREFIX*calendarchanges` WHERE `calendarid` = ? AND `calendartype` = ?');
-		$stmt->execute([$calendarId, self::CALENDAR_TYPE_CALENDAR]);
+		// $stmt = $this->db->prepare('DELETE FROM `*PREFIX*calendarchanges` WHERE `calendarid` = ? AND `calendartype` = ?');
+		// $stmt->execute([$calendarId, self::CALENDAR_TYPE_CALENDAR]);
 
-		$this->calendarSharingBackend->deleteAllShares($calendarId);
+		// $this->calendarSharingBackend->deleteAllShares($calendarId);
 
-		$query = $this->db->getQueryBuilder();
-		$query->delete($this->dbObjectPropertiesTable)
-			->where($query->expr()->eq('calendarid', $query->createNamedParameter($calendarId)))
-			->andWhere($query->expr()->eq('calendartype', $query->createNamedParameter(self::CALENDAR_TYPE_CALENDAR)))
-			->execute();
+		// $query = $this->db->getQueryBuilder();
+		// $query->delete($this->dbObjectPropertiesTable)
+		//	->where($query->expr()->eq('calendarid', $query->createNamedParameter($calendarId)))
+		//	->andWhere($query->expr()->eq('calendartype', $query->createNamedParameter(self::CALENDAR_TYPE_CALENDAR)))
+		//	->execute();
 
 		if ($calendarData) {
 			$this->dispatcher->dispatchTyped(new CalendarDeletedEvent((int)$calendarId, $calendarData, $shares));
