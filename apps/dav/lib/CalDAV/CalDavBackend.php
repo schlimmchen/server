@@ -1409,7 +1409,8 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$query->select($columns)
 			->from('calendarobjects')
 			->where($query->expr()->eq('calendarid', $query->createNamedParameter($calendarId)))
-			->andWhere($query->expr()->eq('calendartype', $query->createNamedParameter($calendarType)));
+			->andWhere($query->expr()->eq('calendartype', $query->createNamedParameter($calendarType)))
+			->andWhere($query->expr()->isNull('deleted_at'));
 
 		if ($componentType) {
 			$query->andWhere($query->expr()->eq('componenttype', $query->createNamedParameter($componentType)));
