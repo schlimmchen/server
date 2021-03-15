@@ -1318,8 +1318,16 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			}
 		}
 
-		$stmt = $this->db->prepare('DELETE FROM `*PREFIX*calendarobjects` WHERE `calendarid` = ? AND `uri` = ? AND `calendartype` = ?');
-		$stmt->execute([$calendarId, $objectUri, $calendarType]);
+		// $stmt = $this->db->prepare('DELETE FROM `*PREFIX*calendarobjects` WHERE `calendarid` = ? AND `uri` = ? AND `calendartype` = ?');
+		// $stmt->execute([$calendarId, $objectUri, $calendarType]);
+		$qb = $this->db->getQueryBuilder();
+		$markObjectDeletedQuery = $qb->update('calendarobjects')
+			->set('deleted_at', $qb->createNamedParameter(time(), IQueryBuilder::PARAM_INT))
+			->where(
+				$qb->expr()->eq('calendarid', $qb->createNamedParameter($calendarId)),
+				$qb->expr()->eq('calendartype', $qb->createNamedParameter($calendarType))
+			);
+		$markObjectDeletedQuery->executeUpdate();
 
 		if (is_array($data)) {
 			$this->purgeProperties($calendarId, $data['id'], $calendarType);
