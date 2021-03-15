@@ -1559,7 +1559,8 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			->andWhere($compExpr)
 			->andWhere($propParamExpr)
 			->andWhere($query->expr()->iLike('i.value',
-				$query->createNamedParameter('%'.$this->db->escapeLikeParameter($filters['search-term']).'%')));
+				$query->createNamedParameter('%'.$this->db->escapeLikeParameter($filters['search-term']).'%')))
+			->andWhere($query->expr()->isNull('deleted_at'));
 
 		if ($offset) {
 			$query->setFirstResult($offset);
@@ -1625,7 +1626,8 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		}
 
 		$outerQuery->select('c.id', 'c.calendardata', 'c.componenttype', 'c.uid', 'c.uri')
-			->from('calendarobjects', 'c');
+			->from('calendarobjects', 'c')
+			->where($outerQuery->expr()->isNull('deleted_at'));
 
 		if (isset($options['timerange'])) {
 			if (isset($options['timerange']['start']) && $options['timerange']['start'] instanceof DateTime) {
@@ -1827,7 +1829,8 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			->leftJoin('cob', 'calendarobjects', 'co', $calendarObjectIdQuery->expr()->eq('co.id', 'cob.objectid'))
 			->andWhere($calendarObjectIdQuery->expr()->in('co.componenttype', $calendarObjectIdQuery->createNamedParameter($componentTypes, IQueryBuilder::PARAM_STR_ARRAY)))
 			->andWhere($calendarOr)
-			->andWhere($searchOr);
+			->andWhere($searchOr)
+			->andWhere($calendarObjectIdQuery->expr()->isNull('deleted_at'));
 
 		if ('' !== $pattern) {
 			if (!$escapePattern) {
