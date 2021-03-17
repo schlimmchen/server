@@ -59,6 +59,8 @@ class ComposerStaticInitDAV
         'OCA\\DAV\\CalDAV\\CalendarManager' => __DIR__ . '/..' . '/../lib/CalDAV/CalendarManager.php',
         'OCA\\DAV\\CalDAV\\CalendarObject' => __DIR__ . '/..' . '/../lib/CalDAV/CalendarObject.php',
         'OCA\\DAV\\CalDAV\\CalendarRoot' => __DIR__ . '/..' . '/../lib/CalDAV/CalendarRoot.php',
+        'OCA\\DAV\\CalDAV\\CalendarTrashbinHome' => __DIR__ . '/..' . '/../lib/CalDAV/CalendarTrashbinHome.php',
+        'OCA\\DAV\\CalDAV\\CalendarTrashbinRoot' => __DIR__ . '/..' . '/../lib/CalDAV/CalendarTrashbinRoot.php',
         'OCA\\DAV\\CalDAV\\ICSExportPlugin\\ICSExportPlugin' => __DIR__ . '/..' . '/../lib/CalDAV/ICSExportPlugin/ICSExportPlugin.php',
         'OCA\\DAV\\CalDAV\\Integration\\ExternalCalendar' => __DIR__ . '/..' . '/../lib/CalDAV/Integration/ExternalCalendar.php',
         'OCA\\DAV\\CalDAV\\Integration\\ICalendarProvider' => __DIR__ . '/..' . '/../lib/CalDAV/Integration/ICalendarProvider.php',

@@ -32,6 +32,7 @@ use OC\KnownUser\KnownUserService;
 use OCA\DAV\AppInfo\PluginManager;
 use OCA\DAV\CalDAV\CalDavBackend;
 use OCA\DAV\CalDAV\CalendarRoot;
+use OCA\DAV\CalDAV\CalendarTrashbinRoot;
 use OCA\DAV\CalDAV\Principal\Collection;
 use OCA\DAV\CalDAV\Proxy\ProxyMapper;
 use OCA\DAV\CalDAV\PublicCalendarRoot;
@@ -98,6 +99,8 @@ class RootCollection extends SimpleCollection {
 		$caldavBackend = new CalDavBackend($db, $userPrincipalBackend, $userManager, $groupManager, $random, $logger, $dispatcher, $legacyDispatcher);
 		$userCalendarRoot = new CalendarRoot($userPrincipalBackend, $caldavBackend, 'principals/users');
 		$userCalendarRoot->disableListing = $disableListing;
+		$userCalendarTrashbinRoot = new CalendarTrashbinRoot($userPrincipalBackend, $caldavBackend, 'principals/users');
+		$userCalendarTrashbinRoot->disableListing = $disableListing;
 
 		$resourceCalendarCaldavBackend = new CalDavBackend($db, $userPrincipalBackend, $userManager, $groupManager, $random, $logger, $dispatcher, $legacyDispatcher);
 		$resourceCalendarRoot = new CalendarRoot($calendarResourcePrincipalBackend, $caldavBackend, 'principals/calendar-resources');
@@ -159,6 +162,7 @@ class RootCollection extends SimpleCollection {
 				$calendarRoomPrincipals]),
 			$filesCollection,
 			$userCalendarRoot,
+			$userCalendarTrashbinRoot,
 			new SimpleCollection('system-calendars', [
 				$resourceCalendarRoot,
 				$roomCalendarRoot,
