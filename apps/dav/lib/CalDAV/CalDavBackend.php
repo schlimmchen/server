@@ -138,7 +138,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		'{urn:ietf:params:xml:ns:caldav}calendar-timezone' => 'timezone',
 		'{http://apple.com/ns/ical/}calendar-order' => 'calendarorder',
 		'{http://apple.com/ns/ical/}calendar-color' => 'calendarcolor',
-		'{' . \OCA\DAV\DAV\Sharing\Plugin::NS_OWNCLOUD . '}deleted-at' => 'deleted_at',
+		'{' . \OCA\DAV\DAV\Sharing\Plugin::NS_NEXTCLOUD . '}deleted-at' => 'deleted_at',
 	];
 
 	/**
@@ -1060,7 +1060,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 	 * @param int $calendarType
 	 * @return array|null
 	 */
-	public function getCalendarObject($calendarId, $objectUri, $calendarType = self::CALENDAR_TYPE_CALENDAR) {
+	public function getCalendarObject($calendarId, $objectUri, int $calendarType = self::CALENDAR_TYPE_CALENDAR) {
 		$query = $this->db->getQueryBuilder();
 		$query->select(['id', 'uri', 'lastmodified', 'etag', 'calendarid', 'size', 'calendardata', 'componenttype', 'classification'])
 			->from('calendarobjects')

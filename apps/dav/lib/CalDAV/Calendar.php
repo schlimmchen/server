@@ -42,7 +42,7 @@ use Sabre\DAV\PropPatch;
  * Class Calendar
  *
  * @package OCA\DAV\CalDAV
- * @property BackendInterface|CalDavBackend $caldavBackend
+ * @property CalDavBackend $caldavBackend
  */
 class Calendar extends \Sabre\CalDAV\Calendar implements IShareable {
 
