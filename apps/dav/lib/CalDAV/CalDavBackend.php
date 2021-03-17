@@ -138,6 +138,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		'{urn:ietf:params:xml:ns:caldav}calendar-timezone' => 'timezone',
 		'{http://apple.com/ns/ical/}calendar-order' => 'calendarorder',
 		'{http://apple.com/ns/ical/}calendar-color' => 'calendarcolor',
+		'{' . \OCA\DAV\DAV\Sharing\Plugin::NS_OWNCLOUD . '}deleted-at' => 'deleted_at',
 	];
 
 	/**
@@ -300,6 +301,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$fields[] = 'components';
 		$fields[] = 'principaluri';
 		$fields[] = 'transparent';
+		$fields[] = 'deleted_at';
 
 		// Making fields a comma-delimited list
 		$query = $this->db->getQueryBuilder();
@@ -396,14 +398,10 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 	/**
 	 * @param IQueryBuilder $query
 	 * @param string $principalUri
-	 * @param string $principalUriOriginal
 	 *
 	 * @return array[]
-	 * @throws DAV\Exception
-	 * @throws \OCP\AppFramework\QueryException
-	 * @throws \OCP\DB\Exception
 	 */
-	public function buildOwnCalendars(IQueryBuilder $query, string $principalUri, string $principalUriOriginal): array {
+	public function buildOwnCalendars(IQueryBuilder $query, string $principalUri): array {
 		$result = $query->executeQuery();
 
 		$calendars = [];
@@ -441,7 +439,6 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 	}
 
 	public function getDeletedCalendarsForUser($principalUri) {
-		$principalUriOriginal = $principalUri;
 		$principalUri = $this->convertPrincipal($principalUri, true);
 		$fields = array_values($this->propertyMap);
 		$fields[] = 'id';
@@ -450,6 +447,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$fields[] = 'components';
 		$fields[] = 'principaluri';
 		$fields[] = 'transparent';
+		$fields[] = 'deleted_at';
 
 		// Making fields a comma-delimited list
 		$query = $this->db->getQueryBuilder();
@@ -464,7 +462,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			$query->andWhere($query->expr()->eq('principaluri', $query->createNamedParameter($principalUri)));
 		}
 
-		return $this->buildOwnCalendars($query, $principalUri, $principalUriOriginal);
+		return $this->buildOwnCalendars($query, $principalUri);
 	}
 
 	/**
@@ -480,6 +478,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$fields[] = 'components';
 		$fields[] = 'principaluri';
 		$fields[] = 'transparent';
+		$fields[] = 'deleted_at';
 		// Making fields a comma-delimited list
 		$query = $this->db->getQueryBuilder();
 		$query->select($fields)->from('calendars')
@@ -667,6 +666,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$fields[] = 'components';
 		$fields[] = 'principaluri';
 		$fields[] = 'transparent';
+		$fields[] = 'deleted_at';
 
 		// Making fields a comma-delimited list
 		$query = $this->db->getQueryBuilder();
@@ -719,6 +719,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$fields[] = 'components';
 		$fields[] = 'principaluri';
 		$fields[] = 'transparent';
+		$fields[] = 'deleted_at';
 
 		// Making fields a comma-delimited list
 		$query = $this->db->getQueryBuilder();
