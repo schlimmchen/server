@@ -27,19 +27,13 @@ namespace OCA\DAV\CalDAV;
 
 use OCP\IConfig;
 use OCP\IL10N;
-use OCP\IUserSession;
-use Sabre\CalDAV\CalendarRoot;
-use Sabre\DAV\Exception\Forbidden;
-use Sabre\DAVACL\PrincipalBackend\BackendInterface;
-use function is_null;
+use Sabre\CalDAV\CalendarHome;
+use Sabre\DAV\Exception\NotFound;
+use function array_map;
 
-class CalendarTrashbinRoot extends CalendarRoot {
-
+class DeletedCalendarsHome extends CalendarHome {
 	/** @var CalDavBackend */
 	protected $customCaldavBackend;
-
-	/** @var IUserSession */
-	private $userSession;
 
 	/** @var IL10N */
 	private $l10n;
@@ -47,35 +41,42 @@ class CalendarTrashbinRoot extends CalendarRoot {
 	/** @var IConfig */
 	private $config;
 
-	public function __construct(BackendInterface $principalBackend,
-								CalDavBackend $caldavBackend,
-								IUserSession $userSession,
+	public function __construct(CalDavBackend $caldavBackend,
 								IL10N $l10n,
 								IConfig $config,
-								$principalPrefix = 'principals') {
-		parent::__construct($principalBackend, $caldavBackend, $principalPrefix);
-
+								array $principalInfo) {
+		parent::__construct($caldavBackend, $principalInfo);
 		$this->customCaldavBackend = $caldavBackend;
-		$this->userSession = $userSession;
 		$this->l10n = $l10n;
 		$this->config = $config;
 	}
 
-	public function getChildForPrincipal(array $principal) {
-		[, $name] = \Sabre\Uri\split($principal['uri']);
-		$user = $this->userSession->getUser();
-		if (is_null($user) || $name !== $user->getUID()) {
-			throw new Forbidden();
-		}
-		return new CalendarTrashbinHome(
-			$this->customCaldavBackend,
-			$this->l10n,
-			$this->config,
-			$principal
-		);
+	public function getChildren() {
+		return array_map(function (array $calendarInfo) {
+			return new Calendar(
+				$this->caldavBackend,
+				$calendarInfo,
+				$this->l10n,
+				$this->config
+			);
+		}, $this->customCaldavBackend->getDeletedCalendarsForUser($this->principalInfo['uri']));
 	}
 
-	public function getName() {
-		return 'calendars-trashbin';
+	public function getChild($uri) {
+		$data = $this->customCaldavBackend->getCalendarByUri(
+			$this->principalInfo['uri'],
+			$uri,
+		);
+
+		if ($data === false) {
+			throw new NotFound();
+		}
+
+		return new Calendar(
+			$this->caldavBackend,
+			$data,
+			$this->l10n,
+			$this->config
+		);
 	}
 }

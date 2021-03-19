@@ -74,6 +74,7 @@ use Sabre\CalDAV\Xml\Property\SupportedCalendarComponentSet;
 use Sabre\DAV;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
+use Sabre\DAV\INode;
 use Sabre\DAV\PropPatch;
 use Sabre\Uri;
 use Sabre\VObject\Component;
@@ -2931,5 +2932,28 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		if (isset($principalInformation['{DAV:}displayname'])) {
 			$calendarInfo[$displaynameKey] = $principalInformation['{DAV:}displayname'];
 		}
+	}
+
+	public function restore(INode $node): bool {
+		if ($node instanceof Calendar) {
+			$qb = $this->db->getQueryBuilder();
+			$markCalendarObjectRestored = $qb->update('calendars')
+				->set('deleted_at', $qb->createNamedParameter(null))
+				->where($qb->expr()->eq('id', $qb->createNamedParameter((int) $node->getId(), IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT));
+			$markCalendarObjectRestored->executeUpdate();
+
+			return true;
+		}
+		if ($node instanceof CalendarObject) {
+			$qb = $this->db->getQueryBuilder();
+			$markCalendarRestored = $qb->update('calendarobjects')
+				->set('deleted_at', $qb->createNamedParameter(null))
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($node->getId(), IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT));
+			$markCalendarRestored->executeUpdate();
+
+			return true;
+		}
+
+		return false;
 	}
 }

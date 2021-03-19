@@ -30,7 +30,6 @@ use Psr\Log\LoggerInterface;
 use function sprintf;
 
 class CalendarRepository {
-
 	private const CALENDAR_TABLE = 'calendars';
 	private const CALENDAR_OBJECTS_TABLE = 'calendarobjects';
 

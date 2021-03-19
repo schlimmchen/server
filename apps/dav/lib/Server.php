@@ -152,6 +152,7 @@ class Server {
 			'principals/groups',
 			'principals/calendar-resources',
 			'principals/calendar-rooms',
+			'principals/calendar-trashbins',
 		];
 		$acl->defaultUsernamePath = 'principals/users';
 		$this->server->addPlugin($acl);

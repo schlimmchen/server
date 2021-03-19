@@ -29,6 +29,7 @@
 namespace OCA\DAV;
 
 use OC\KnownUser\KnownUserService;
+use OCA\DAV\AppInfo\Application;
 use OCA\DAV\AppInfo\PluginManager;
 use OCA\DAV\CalDAV\CalDavBackend;
 use OCA\DAV\CalDAV\CalendarRoot;
@@ -48,6 +49,9 @@ use OCA\DAV\Upload\CleanupService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\IConfig;
+use OCP\IUserSession;
+use OCP\L10N\IFactory as IL10nFactory;
 use Sabre\DAV\SimpleCollection;
 
 class RootCollection extends SimpleCollection {
@@ -99,7 +103,14 @@ class RootCollection extends SimpleCollection {
 		$caldavBackend = new CalDavBackend($db, $userPrincipalBackend, $userManager, $groupManager, $random, $logger, $dispatcher, $legacyDispatcher);
 		$userCalendarRoot = new CalendarRoot($userPrincipalBackend, $caldavBackend, 'principals/users');
 		$userCalendarRoot->disableListing = $disableListing;
-		$userCalendarTrashbinRoot = new CalendarTrashbinRoot($userPrincipalBackend, $caldavBackend, 'principals/users');
+		$userCalendarTrashbinRoot = new CalendarTrashbinRoot(
+			$userPrincipalBackend,
+			$caldavBackend,
+			\OC::$server->get(IUserSession::class),
+			\OC::$server->get(IL10nFactory::class)->get(Application::APP_ID),
+			\OC::$server->get(IConfig::class),
+			'principals/users'
+		);
 		$userCalendarTrashbinRoot->disableListing = $disableListing;
 
 		$resourceCalendarCaldavBackend = new CalDavBackend($db, $userPrincipalBackend, $userManager, $groupManager, $random, $logger, $dispatcher, $legacyDispatcher);
