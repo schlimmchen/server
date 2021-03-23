@@ -144,6 +144,15 @@ class AccountManager implements IAccountManager {
 			}
 		}
 
+		if (isset($data[self::PROPERTY_WEBSITE])
+			&& $data[self::PROPERTY_WEBSITE]['value'] !== ''
+			&& filter_var($data[self::PROPERTY_WEBSITE]['value'], FILTER_VALIDATE_URL) === false) {
+			if ($throwOnData) {
+				throw new \InvalidArgumentException(self::PROPERTY_WEBSITE);
+			}
+			$data[self::PROPERTY_WEBSITE]['value'] = '';
+		}
+
 		if (empty($userData)) {
 			$this->insertNewUser($user, $data);
 		} elseif ($userData !== $data) {
