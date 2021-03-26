@@ -55,7 +55,7 @@ OC.L10N.register(
     "%1$s changed your password on %2$s." : "%1$s cambió su contraseña el %2$s.",
     "Your password on %s was changed." : "Su contraseña de %s fue cambiada. ",
     "Your password on %s was reset by an administrator." : "Su contraseña de %s fue restablecida por un administrador.",
-    "Password for %1$s changed on %2$s" : "La contraseña para %1$s fue cambiada el %2$s",
+    "Password for %1$s changed on %2$s" : "La contraseña para %1$s fue cambiada en %2$s",
     "Password changed for %s" : "La contraseña fue cambiada para %s",
     "If you did not request this, please contact an administrator." : "Si no lo solicitó, favor de contactar a un administrador. ",
     "Your email address on %s was changed." : "Su dirección de correo electrónico en %s fue cambiada. ",
@@ -212,7 +212,6 @@ OC.L10N.register(
     "Expire after " : "Expirar después de",
     "days" : "días",
     "Enforce expiration date" : "Forzar fecha de expiración",
-    "Allow users to share via link" : "Permitir a los usuarios compartir mediante links",
     "Allow public uploads" : "Permitir cargas públicas",
     "Always ask for a password" : "Siempre pedir una contraseña",
     "Enforce password protection" : "Forzar protección de contraseñas",
@@ -268,6 +267,7 @@ OC.L10N.register(
     "Valid until %s" : "Válido hasta %s",
     "Import root certificate" : "Importar certificado raíz",
     "Execute one task with each page loaded" : "Ejecutar una tarea con cada página cargada",
+    "Allow users to share via link" : "Permitir a los usuarios compartir mediante links",
     "Show disclaimer text on the public link upload page. (Only shown when the file list is hidden.)" : "Mostrar el texto de exención de responsabilidad legal en la página de carga de links públicos. (Sólo se muestra cuando la lista de archivos está oculta.)"
 },
 "nplurals=2; plural=(n != 1);");

@@ -61,6 +61,7 @@ use OCP\App\ManagerEvent;
 use OCP\AppFramework\QueryException;
 use OCP\Authentication\IAlternativeLogin;
 use OCP\ILogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * This class manages the apps. It allows them to register and integrate in the
@@ -971,6 +972,11 @@ class OC_App {
 			return false;
 		}
 
+		if (is_file($appPath . '/appinfo/database.xml')) {
+			\OC::$server->getLogger()->error('The appinfo/database.xml file is not longer supported. Used in ' . $appId);
+			return false;
+		}
+
 		\OC::$server->getAppManager()->clearAppsCache();
 		$appData = self::getAppInfo($appId);
 
@@ -986,12 +992,8 @@ class OC_App {
 		self::registerAutoloading($appId, $appPath, true);
 		self::executeRepairSteps($appId, $appData['repair-steps']['pre-migration']);
 
-		if (file_exists($appPath . '/appinfo/database.xml')) {
-			OC_DB::updateDbFromStructure($appPath . '/appinfo/database.xml');
-		} else {
-			$ms = new MigrationService($appId, \OC::$server->get(\OC\DB\Connection::class));
-			$ms->migrate();
-		}
+		$ms = new MigrationService($appId, \OC::$server->get(\OC\DB\Connection::class));
+		$ms->migrate();
 
 		self::executeRepairSteps($appId, $appData['repair-steps']['post-migration']);
 		self::setupLiveMigrations($appId, $appData['repair-steps']['live-migration']);
@@ -1041,7 +1043,7 @@ class OC_App {
 		$dispatcher = OC::$server->getEventDispatcher();
 
 		// load the steps
-		$r = new Repair([], $dispatcher);
+		$r = new Repair([], $dispatcher, \OC::$server->get(LoggerInterface::class));
 		foreach ($steps as $step) {
 			try {
 				$r->addStep($step);
