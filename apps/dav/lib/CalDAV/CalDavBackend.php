@@ -39,6 +39,7 @@
 namespace OCA\DAV\CalDAV;
 
 use DateTime;
+use OCA\DAV\CalDAV\Trashbin\TrashbinSupport;
 use OCA\DAV\Connector\Sabre\Principal;
 use OCA\DAV\DAV\Sharing\Backend;
 use OCA\DAV\DAV\Sharing\IShareable;
@@ -91,6 +92,7 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 use function array_merge;
 use function array_values;
 use function explode;
+use function strtolower;
 use function time;
 
 /**
@@ -100,7 +102,7 @@ use function time;
  *
  * @package OCA\DAV\CalDAV
  */
-class CalDavBackend extends AbstractBackend implements SyncSupport, SubscriptionSupport, SchedulingSupport {
+class CalDavBackend extends AbstractBackend implements SyncSupport, SubscriptionSupport, SchedulingSupport, TrashbinSupport {
 	public const CALENDAR_TYPE_CALENDAR = 0;
 	public const CALENDAR_TYPE_SUBSCRIPTION = 1;
 
@@ -317,7 +319,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			$query->andWhere($query->expr()->eq('principaluri', $query->createNamedParameter($principalUri)));
 		}
 
-		$calendars = $this->buildOwnCalendars($query, $principalUri, $principalUriOriginal);
+		$calendars = $this->buildOwnCalendars($query, $principalUri);
 
 		// query for shared calendars
 		$principals = $this->principalBackend->getGroupMembership($principalUriOriginal, true);
@@ -402,7 +404,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 	 *
 	 * @return array[]
 	 */
-	public function buildOwnCalendars(IQueryBuilder $query, string $principalUri): array {
+	private function buildOwnCalendars(IQueryBuilder $query, string $principalUri): array {
 		$result = $query->executeQuery();
 
 		$calendars = [];
@@ -439,7 +441,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		return array_values($calendars);
 	}
 
-	public function getDeletedCalendarsForUser($principalUri) {
+	public function getDeletedCalendarsForUser(string $principalUri): array {
 		$principalUri = $this->convertPrincipal($principalUri, true);
 		$fields = array_values($this->propertyMap);
 		$fields[] = 'id';
@@ -1037,6 +1039,34 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 				'size' => (int)$row['size'],
 				'component' => strtolower($row['componenttype']),
 				'classification' => (int)$row['classification']
+			];
+		}
+		$stmt->closeCursor();
+
+		return $result;
+	}
+
+	public function getDeletedCalendarObjects(string $principalUri): array {
+		$query = $this->db->getQueryBuilder();
+		$query->select(['co.id', 'co.uri', 'co.lastmodified', 'co.etag', 'co.calendarid', 'co.size', 'co.componenttype', 'co.classification', 'co.deleted_at'])
+			->from('calendarobjects', 'co')
+			->join('co', 'calendars', 'c', $query->expr()->eq('c.id', 'co.calendarid', IQueryBuilder::PARAM_INT))
+			->where($query->expr()->eq('principaluri', $query->createNamedParameter($principalUri)))
+			->andWhere($query->expr()->isNotNull('co.deleted_at'));
+		$stmt = $query->execute();
+
+		$result = [];
+		foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+			$result[] = [
+				'id' => $row['id'],
+				'uri' => $row['uri'],
+				'lastmodified' => $row['lastmodified'],
+				'etag' => '"' . $row['etag'] . '"',
+				'calendarid' => $row['calendarid'],
+				'size' => (int)$row['size'],
+				'component' => strtolower($row['componenttype']),
+				'classification' => (int)$row['classification'],
+				'{' . \OCA\DAV\DAV\Sharing\Plugin::NS_NEXTCLOUD . '}deleted-at' => $row['deleted_at'],
 			];
 		}
 		$stmt->closeCursor();

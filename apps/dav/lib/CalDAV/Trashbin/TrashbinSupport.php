@@ -23,24 +23,34 @@ declare(strict_types=1);
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\DAV\CalDAV;
+namespace OCA\DAV\CalDAV\Trashbin;
 
-use Sabre\CalDAV\Calendar;
-use Sabre\CalDAV\CalendarHome;
-use function array_map;
+use OCA\DAV\CalDAV\CalDavBackend;
+use OCA\DAV\CalDAV\Calendar;
+use OCA\DAV\CalDAV\CalendarObject;
+use OCP\DB\QueryBuilder\IQueryBuilder;
+use Sabre\CalDAV\Backend\BackendInterface;
+use Sabre\DAV\INode;
 
-class DeletedCalendarObjectsHome extends CalendarHome {
-	/** @var CalDavBackend */
-	protected $customCaldavBackend;
+interface TrashbinSupport extends BackendInterface {
+	/**
+	 * @param string $principalUri
+	 *
+	 * @return mixed[]
+	 */
+	public function getDeletedCalendarsForUser(string $principalUri): array;
 
-	public function __construct(CalDavBackend $caldavBackend, array $principalInfo) {
-		parent::__construct($caldavBackend, $principalInfo);
-		$this->customCaldavBackend = $caldavBackend;
-	}
+	/**
+	 * @param string $principalUri
+	 *
+	 * @return mixed[]
+	 */
+	public function getDeletedCalendarObjects(string $principalUri): array;
 
-	public function getChildren() {
-		return array_map(function (array $calendarInfo) {
-			return new Calendar($this->caldavBackend, $calendarInfo);
-		}, $this->customCaldavBackend->getDeletedCalendarsForUser($this->principalInfo['uri']));
-	}
+	/**
+	 * @param INode $node
+	 *
+	 * @return bool whether the node could be restored
+	 */
+	public function restore(INode $node): bool;
 }

@@ -30,6 +30,8 @@ namespace OCA\DAV\CalDAV;
 use OCA\DAV\AppInfo\PluginManager;
 use OCA\DAV\CalDAV\Integration\ExternalCalendar;
 use OCA\DAV\CalDAV\Integration\ICalendarProvider;
+use OCA\DAV\CalDAV\Trashbin\TrashbinHome;
+use OCA\DAV\CalDAV\Trashbin\TrashbinSupport;
 use Sabre\CalDAV\Backend\BackendInterface;
 use Sabre\CalDAV\Backend\NotificationSupport;
 use Sabre\CalDAV\Backend\SchedulingSupport;
@@ -104,6 +106,10 @@ class CalendarHome extends \Sabre\CalDAV\CalendarHome {
 			$objects[] = new \Sabre\CalDAV\Notifications\Collection($this->caldavBackend, $this->principalInfo['uri']);
 		}
 
+		if ($this->caldavBackend instanceof TrashbinSupport) {
+			$objects[] = new TrashbinHome($this->caldavBackend, $this->principalInfo);
+		}
+
 		// If the backend supports subscriptions, we'll add those as well,
 		if ($this->caldavBackend instanceof SubscriptionSupport) {
 			foreach ($this->caldavBackend->getSubscriptionsForUser($this->principalInfo['uri']) as $subscription) {
@@ -139,6 +145,9 @@ class CalendarHome extends \Sabre\CalDAV\CalendarHome {
 		}
 		if ($name === 'notifications' && $this->caldavBackend instanceof NotificationSupport) {
 			return new \Sabre\CalDAV\Notifications\Collection($this->caldavBackend, $this->principalInfo['uri']);
+		}
+		if ($name === TrashbinHome::NAME && $this->caldavBackend instanceof TrashbinSupport) {
+			return new TrashbinHome($this->caldavBackend, $this->principalInfo);
 		}
 
 		// Calendars

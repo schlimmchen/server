@@ -103,15 +103,6 @@ class RootCollection extends SimpleCollection {
 		$caldavBackend = new CalDavBackend($db, $userPrincipalBackend, $userManager, $groupManager, $random, $logger, $dispatcher, $legacyDispatcher);
 		$userCalendarRoot = new CalendarRoot($userPrincipalBackend, $caldavBackend, 'principals/users');
 		$userCalendarRoot->disableListing = $disableListing;
-		$userCalendarTrashbinRoot = new CalendarTrashbinRoot(
-			$userPrincipalBackend,
-			$caldavBackend,
-			\OC::$server->get(IUserSession::class),
-			\OC::$server->get(IL10nFactory::class)->get(Application::APP_ID),
-			\OC::$server->get(IConfig::class),
-			'principals/users'
-		);
-		$userCalendarTrashbinRoot->disableListing = $disableListing;
 
 		$resourceCalendarCaldavBackend = new CalDavBackend($db, $userPrincipalBackend, $userManager, $groupManager, $random, $logger, $dispatcher, $legacyDispatcher);
 		$resourceCalendarRoot = new CalendarRoot($calendarResourcePrincipalBackend, $caldavBackend, 'principals/calendar-resources');
@@ -173,7 +164,6 @@ class RootCollection extends SimpleCollection {
 				$calendarRoomPrincipals]),
 			$filesCollection,
 			$userCalendarRoot,
-			$userCalendarTrashbinRoot,
 			new SimpleCollection('system-calendars', [
 				$resourceCalendarRoot,
 				$roomCalendarRoot,

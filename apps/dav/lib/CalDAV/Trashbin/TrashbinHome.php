@@ -23,8 +23,9 @@ declare(strict_types=1);
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\DAV\CalDAV;
+namespace OCA\DAV\CalDAV\Trashbin;
 
+use OCA\DAV\CalDAV\Trashbin\TrashbinSupport;
 use OCP\IConfig;
 use OCP\IL10N;
 use Sabre\DAV\Exception\Forbidden;
@@ -33,30 +34,19 @@ use Sabre\DAV\ICollection;
 use Sabre\DAV\INode;
 use function in_array;
 
-class CalendarTrashbinHome implements ICollection {
-	private const RESTORE_TARGET = 'restore';
-	private const DELETED_CALENDARS_COLLECTION = 'calendars';
-	private const DELETED_OBJECTS_COLLECTION = 'objects';
+class TrashbinHome implements ICollection {
 
-	/** @var CalDavBackend */
+	public const NAME = 'trashbin';
+
+	/** @var TrashbinSupport */
 	private $caldavBackend;
 
 	/** @var array */
 	private $principalInfo;
 
-	/** @var IL10N */
-	private $l10n;
-
-	/** @var IConfig */
-	private $config;
-
-	public function __construct(CalDavBackend $caldavBackend,
-								IL10N $l10n,
-								IConfig $config,
+	public function __construct(TrashbinSupport $caldavBackend,
 								array $principalInfo) {
 		$this->caldavBackend = $caldavBackend;
-		$this->l10n = $l10n;
-		$this->config = $config;
 		$this->principalInfo = $principalInfo;
 	}
 
@@ -70,19 +60,17 @@ class CalendarTrashbinHome implements ICollection {
 
 	public function getChild($name): INode {
 		switch ($name) {
-			case self::RESTORE_TARGET:
+			case RestoreTarget::NAME:
 				return new RestoreTarget(
 					$this->caldavBackend
 				);
-			case self::DELETED_CALENDARS_COLLECTION:
-				return new DeletedCalendarsHome(
+			case DeletedCalendarsCollection::NAME:
+				return new DeletedCalendarsCollection(
 					$this->caldavBackend,
-					$this->l10n,
-					$this->config,
 					$this->principalInfo
 				);
-			case self::DELETED_OBJECTS_COLLECTION:
-				return new DeletedCalendarObjectsHome(
+			case DeletedCalendarObjectsCollection::NAME:
+				return new DeletedCalendarObjectsCollection(
 					$this->caldavBackend,
 					$this->principalInfo
 				);
@@ -96,13 +84,11 @@ class CalendarTrashbinHome implements ICollection {
 			new RestoreTarget(
 				$this->caldavBackend
 			),
-			new DeletedCalendarsHome(
+			new DeletedCalendarsCollection(
 				$this->caldavBackend,
-				$this->l10n,
-				$this->config,
 				$this->principalInfo
 			),
-			new DeletedCalendarObjectsHome(
+			new DeletedCalendarObjectsCollection(
 				$this->caldavBackend,
 				$this->principalInfo
 			),
@@ -111,9 +97,9 @@ class CalendarTrashbinHome implements ICollection {
 
 	public function childExists($name): bool {
 		return in_array($name, [
-			self::RESTORE_TARGET,
-			self::DELETED_CALENDARS_COLLECTION,
-			self::DELETED_OBJECTS_COLLECTION,
+			RestoreTarget::NAME,
+			DeletedCalendarsCollection::NAME,
+			DeletedCalendarObjectsCollection::NAME,
 		], true);
 	}
 
@@ -122,8 +108,7 @@ class CalendarTrashbinHome implements ICollection {
 	}
 
 	public function getName(): string {
-		[, $name] = \Sabre\Uri\split($this->principalInfo['uri']);
-		return $name;
+		return self::NAME;
 	}
 
 	public function setName($name) {

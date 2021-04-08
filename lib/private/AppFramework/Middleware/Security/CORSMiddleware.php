@@ -90,7 +90,7 @@ class CORSMiddleware extends Middleware {
 
 			$this->session->logout();
 			try {
-				if (!$this->session->logClientIn($user, $pass, $this->request, $this->throttler)) {
+				if ($user === null || $pass === null || !$this->session->logClientIn($user, $pass, $this->request, $this->throttler)) {
 					throw new SecurityException('CORS requires basic auth', Http::STATUS_UNAUTHORIZED);
 				}
 			} catch (PasswordLoginForbiddenException $ex) {
