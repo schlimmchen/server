@@ -92,6 +92,7 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 use function array_merge;
 use function array_values;
 use function explode;
+use function sprintf;
 use function strtolower;
 use function time;
 
@@ -310,8 +311,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$query = $this->db->getQueryBuilder();
 		$query->select($fields)
 			->from('calendars')
-			->orderBy('calendarorder', 'ASC')
-			->where($query->expr()->isNull('deleted_at'));
+			->orderBy('calendarorder', 'ASC');
 
 		if ($principalUri === '') {
 			$query->andWhere($query->expr()->emptyString('principaluri'));
@@ -431,6 +431,17 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			}
 
 			$this->addOwnerPrincipal($calendar);
+
+			if (isset($row['deleted_at'])) {
+				// Columns is set and not null -> this is a deleted calendar
+				// we send a custom resourcetype to hide the deleted calendar
+				// from ordinary DAV clients, but the Calendar app will know
+				// how to handle this special resource.
+				$calendar['{DAV:}resourcetype'] = new DAV\Xml\Property\ResourceType([
+					'{DAV:}collection',
+					sprintf('{%s}deleted-calendar', \OCA\DAV\DAV\Sharing\Plugin::NS_NEXTCLOUD),
+				]);
+			}
 
 			if (!isset($calendars[$calendar['id']])) {
 				$calendars[$calendar['id']] = $calendar;
