@@ -1904,10 +1904,4 @@ $CONFIG = [
  */
 
 'login_form_autocomplete' => true,
-
-/**
- * The DAV app doesn't delete calendars and their objects right away but marks them
- * as deleted. Calendars and their objects are kept for 30 days by default.
- */
-'calendar_retention_obligation' => 30*24*60*60,
 ];

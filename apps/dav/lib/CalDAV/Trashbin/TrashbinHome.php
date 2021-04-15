@@ -30,9 +30,13 @@ use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
 use Sabre\DAV\ICollection;
 use Sabre\DAV\INode;
+use Sabre\DAVACL\ACLTrait;
+use Sabre\DAVACL\IACL;
 use function in_array;
 
-class TrashbinHome implements ICollection {
+class TrashbinHome implements IACL, ICollection {
+	use ACLTrait;
+
 	public const NAME = 'trashbin';
 
 	/** @var CalDavBackend */
@@ -45,6 +49,10 @@ class TrashbinHome implements ICollection {
 								array $principalInfo) {
 		$this->caldavBackend = $caldavBackend;
 		$this->principalInfo = $principalInfo;
+	}
+
+	public function getOwner(): string {
+		return $this->principalInfo['uri'];
 	}
 
 	public function createFile($name, $data = null) {

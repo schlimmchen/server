@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\DAV\CalDAV;
 
+use OCA\DAV\AppInfo\Application;
 use OCA\DAV\Db\CalendarRepository;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
@@ -50,7 +51,7 @@ class RetentionService {
 
 	public function cleanUp(): void {
 		$retentionTime = max(
-			$this->config->getSystemValueInt('calendar_retention_obligation', 30 * 24 * 60 * 60),
+			(int) $this->config->getAppValue(Application::APP_ID, 'calendarRetentionObligation', 30 * 24 * 60 * 60),
 			0 // Just making sure we don't delete things in the future when a negative number is passed
 		);
 		$now = $this->time->getTime();
