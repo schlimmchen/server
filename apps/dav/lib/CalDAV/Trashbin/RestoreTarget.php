@@ -45,6 +45,7 @@ declare(strict_types=1);
 
 namespace OCA\DAV\CalDAV\Trashbin;
 
+use OCA\DAV\CalDAV\Calendar;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
 use Sabre\DAV\ICollection;
@@ -82,8 +83,17 @@ class RestoreTarget implements ICollection, IMoveTarget {
 		return false;
 	}
 
-	public function moveInto($targetName, $sourcePath, INode $sourceNode) {
-		return $this->caldavBackend->restore($sourceNode);
+	public function moveInto($targetName, $sourcePath, INode $sourceNode): bool {
+		if ($sourceNode instanceof Calendar) {
+			$this->caldavBackend->restoreCalendar((int) $sourceNode->getResourceId());
+			return true;
+		}
+		if ($sourceNode instanceof DeletedCalendarObject) {
+			$this->caldavBackend->restoreCalendarObject($sourceNode->getId());
+			return true;
+		}
+
+		return false;
 	}
 
 	public function delete() {

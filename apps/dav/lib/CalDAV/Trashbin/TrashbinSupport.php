@@ -39,11 +39,4 @@ interface TrashbinSupport extends BackendInterface {
 	 * @return mixed[]
 	 */
 	public function getDeletedCalendarObjects(string $principalUri): array;
-
-	/**
-	 * @param INode $node
-	 *
-	 * @return bool whether the node could be restored
-	 */
-	public function restore(INode $node): bool;
 }

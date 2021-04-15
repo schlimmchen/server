@@ -29,6 +29,7 @@ use OCA\DAV\CalDAV\CalDavBackend;
 use Sabre\CalDAV\ICalendarObjectContainer;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
+use Sabre\DAV\Exception\NotImplemented;
 use function array_map;
 use function implode;
 use function preg_match;
@@ -48,10 +49,11 @@ class DeletedCalendarObjectsCollection implements ICalendarObjectContainer {
 		$this->principalInfo = $principalInfo;
 	}
 
+	/**
+	 * @see \OCA\DAV\CalDAV\Trashbin\DeletedCalendarObjectsCollection::calendarQuery
+	 */
 	public function getChildren() {
-		return array_map(function (array $calendarInfo) {
-			return $this->buildDeletedCalendarObject($calendarInfo);
-		}, $this->caldavBackend->getDeletedCalendarObjects($this->principalInfo['uri']));
+		throw new NotImplemented();
 	}
 
 	public function getChild($id) {
@@ -68,7 +70,10 @@ class DeletedCalendarObjectsCollection implements ICalendarObjectContainer {
 			throw new NotFound();
 		}
 
-		return $this->buildDeletedCalendarObject($data);
+		return new DeletedCalendarObject(
+			$this->getRelativeObjectPath($data),
+			$data
+		);
 	}
 
 	public function createFile($name, $data = null) {
@@ -103,16 +108,6 @@ class DeletedCalendarObjectsCollection implements ICalendarObjectContainer {
 
 	public function getLastModified(): int {
 		return 0;
-	}
-
-	/**
-	 * @param mixed[] $calendarInfo
-	 */
-	private function buildDeletedCalendarObject(array $calendarInfo): DeletedCalendarObject {
-		return new DeletedCalendarObject(
-			$this->getRelativeObjectPath($calendarInfo),
-			$calendarInfo
-		);
 	}
 
 	public function calendarQuery(array $filters) {

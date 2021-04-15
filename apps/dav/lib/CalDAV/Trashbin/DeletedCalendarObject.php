@@ -46,6 +46,10 @@ class DeletedCalendarObject implements ICalendarObject {
 		throw new Forbidden();
 	}
 
+	public function getId(): int {
+		return (int) $this->objectData['id'];
+	}
+
 	public function getName() {
 		return $this->name;
 	}
@@ -80,6 +84,6 @@ class DeletedCalendarObject implements ICalendarObject {
 	}
 
 	public function getSize() {
-		return $this->objectData['size'];
+		return (int) $this->objectData['size'];
 	}
 }

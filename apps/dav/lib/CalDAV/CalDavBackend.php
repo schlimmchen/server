@@ -39,6 +39,7 @@
 namespace OCA\DAV\CalDAV;
 
 use DateTime;
+use OCA\DAV\CalDAV\Trashbin\DeletedCalendarObject;
 use OCA\DAV\CalDAV\Trashbin\TrashbinSupport;
 use OCA\DAV\Connector\Sabre\Principal;
 use OCA\DAV\DAV\Sharing\Backend;
@@ -946,6 +947,14 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		}
 	}
 
+	public function restoreCalendar(int $id): void {
+		$qb = $this->db->getQueryBuilder();
+		$update = $qb->update('calendars')
+			->set('deleted_at', $qb->createNamedParameter(null))
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT));
+		$update->executeUpdate();
+	}
+
 	/**
 	 * Delete all of an user's shares
 	 *
@@ -1380,6 +1389,14 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		}
 
 		$this->addChange($calendarId, $objectUri, 3, $calendarType);
+	}
+
+	public function restoreCalendarObject(int $id): void {
+		$qb = $this->db->getQueryBuilder();
+		$update = $qb->update('calendarobjects')
+			->set('deleted_at', $qb->createNamedParameter(null))
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT));
+		$update->executeUpdate();
 	}
 
 	/**
@@ -2973,28 +2990,5 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			]);
 		}
 		return $calendar;
-	}
-
-	public function restore(INode $node): bool {
-		if ($node instanceof Calendar) {
-			$qb = $this->db->getQueryBuilder();
-			$markCalendarObjectRestored = $qb->update('calendars')
-				->set('deleted_at', $qb->createNamedParameter(null))
-				->where($qb->expr()->eq('id', $qb->createNamedParameter((int) $node->getId(), IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT));
-			$markCalendarObjectRestored->executeUpdate();
-
-			return true;
-		}
-		if ($node instanceof CalendarObject) {
-			$qb = $this->db->getQueryBuilder();
-			$markCalendarRestored = $qb->update('calendarobjects')
-				->set('deleted_at', $qb->createNamedParameter(null))
-				->where($qb->expr()->eq('id', $qb->createNamedParameter($node->getId(), IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT));
-			$markCalendarRestored->executeUpdate();
-
-			return true;
-		}
-
-		return false;
 	}
 }
