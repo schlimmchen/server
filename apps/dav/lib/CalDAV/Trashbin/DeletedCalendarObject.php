@@ -25,16 +25,21 @@ declare(strict_types=1);
 
 namespace OCA\DAV\CalDAV\Trashbin;
 
+use Sabre\CalDAV\ICalendarObject;
 use Sabre\DAV\Exception\Forbidden;
-use Sabre\DAV\INode;
 
-class DeletedCalendarObject implements INode {
+class DeletedCalendarObject implements ICalendarObject {
 
 	/** @var string */
 	private $name;
 
-	public function __construct(string $name) {
+	/** @var mixed[] */
+	private $objectData;
+
+	public function __construct(string $name,
+								array $objectData) {
 		$this->name = $name;
+		$this->objectData = $objectData;
 	}
 
 	public function delete() {
@@ -51,5 +56,30 @@ class DeletedCalendarObject implements INode {
 
 	public function getLastModified() {
 		return 0;
+	}
+
+	public function put($data) {
+		throw new Forbidden();
+	}
+
+	public function get() {
+		return $this->objectData['calendardata'];
+	}
+
+	public function getContentType() {
+		$mime = 'text/calendar; charset=utf-8';
+		if (isset($this->objectData['component']) && $this->objectData['component']) {
+			$mime .= '; component='.$this->objectData['component'];
+		}
+
+		return $mime;
+	}
+
+	public function getETag() {
+		return $this->objectData['etag'];
+	}
+
+	public function getSize() {
+		return $this->objectData['size'];
 	}
 }

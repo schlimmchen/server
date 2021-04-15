@@ -1,24 +1,4 @@
 <?php
-/*
- * @copyright 2021 Christoph Wurst <christoph@winzerhof-wurst.at>
- *
- * @author 2021 Christoph Wurst <christoph@winzerhof-wurst.at>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 
 declare(strict_types=1);
 
@@ -46,17 +26,14 @@ declare(strict_types=1);
 namespace OCA\DAV\CalDAV\Trashbin;
 
 use OCA\DAV\CalDAV\CalDavBackend;
-use OCA\DAV\CalDAV\Trashbin\TrashbinSupport;
-use OCP\IConfig;
-use OCP\IL10N;
-use Sabre\CalDAV\Calendar;
-use Sabre\CalDAV\CalendarHome;
+use Sabre\CalDAV\ICalendarObjectContainer;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
-use Sabre\DAV\ICollection;
 use function array_map;
+use function implode;
+use function preg_match;
 
-class DeletedCalendarObjectsCollection implements ICollection {
+class DeletedCalendarObjectsCollection implements ICalendarObjectContainer {
 	public const NAME = 'objects';
 
 	/** @var CalDavBackend */
@@ -73,25 +50,25 @@ class DeletedCalendarObjectsCollection implements ICollection {
 
 	public function getChildren() {
 		return array_map(function (array $calendarInfo) {
-			return new DeletedCalendar(
-				$calendarInfo['uri'],
-			);
+			return $this->buildDeletedCalendarObject($calendarInfo);
 		}, $this->caldavBackend->getDeletedCalendarObjects($this->principalInfo['uri']));
 	}
 
-	public function getChild($uri) {
-		$data = $this->caldavBackend->getCalendarByUri(
-			$this->principalInfo['uri'],
-			$uri,
-		);
-
-		if ($data === false) {
+	public function getChild($id) {
+		if (!preg_match("/(\d+)\\.ics/", $id, $matches)) {
 			throw new NotFound();
 		}
 
-		return new DeletedCalendar(
-			$data['uri'],
+		$data = $this->caldavBackend->getCalendarObjectById(
+			$this->principalInfo['uri'],
+			(int) $matches[1],
 		);
+
+		if ($data === null) {
+			throw new NotFound();
+		}
+
+		return $this->buildDeletedCalendarObject($data);
 	}
 
 	public function createFile($name, $data = null) {
@@ -126,5 +103,28 @@ class DeletedCalendarObjectsCollection implements ICollection {
 
 	public function getLastModified(): int {
 		return 0;
+	}
+
+	/**
+	 * @param mixed[] $calendarInfo
+	 */
+	private function buildDeletedCalendarObject(array $calendarInfo): DeletedCalendarObject {
+		return new DeletedCalendarObject(
+			$this->getRelativeObjectPath($calendarInfo),
+			$calendarInfo
+		);
+	}
+
+	public function calendarQuery(array $filters) {
+		return array_map(function (array $calendarInfo) {
+			return $this->getRelativeObjectPath($calendarInfo);
+		}, $this->caldavBackend->getDeletedCalendarObjects($this->principalInfo['uri']));
+	}
+
+	private function getRelativeObjectPath(array $calendarInfo): string {
+		return implode(
+			'.',
+			[$calendarInfo['id'], 'ics'],
+		);
 	}
 }

@@ -25,9 +25,6 @@ declare(strict_types=1);
 
 namespace OCA\DAV\CalDAV\Trashbin;
 
-use OCA\DAV\CalDAV\Trashbin\TrashbinSupport;
-use OCP\IConfig;
-use OCP\IL10N;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
 use Sabre\DAV\ICollection;
@@ -64,11 +61,6 @@ class TrashbinHome implements ICollection {
 				return new RestoreTarget(
 					$this->caldavBackend
 				);
-			case DeletedCalendarsCollection::NAME:
-				return new DeletedCalendarsCollection(
-					$this->caldavBackend,
-					$this->principalInfo
-				);
 			case DeletedCalendarObjectsCollection::NAME:
 				return new DeletedCalendarObjectsCollection(
 					$this->caldavBackend,
@@ -84,10 +76,6 @@ class TrashbinHome implements ICollection {
 			new RestoreTarget(
 				$this->caldavBackend
 			),
-			new DeletedCalendarsCollection(
-				$this->caldavBackend,
-				$this->principalInfo
-			),
 			new DeletedCalendarObjectsCollection(
 				$this->caldavBackend,
 				$this->principalInfo
@@ -98,7 +86,6 @@ class TrashbinHome implements ICollection {
 	public function childExists($name): bool {
 		return in_array($name, [
 			RestoreTarget::NAME,
-			DeletedCalendarsCollection::NAME,
 			DeletedCalendarObjectsCollection::NAME,
 		], true);
 	}

@@ -38,13 +38,6 @@ interface TrashbinSupport extends BackendInterface {
 	 *
 	 * @return mixed[]
 	 */
-	public function getDeletedCalendarsForUser(string $principalUri): array;
-
-	/**
-	 * @param string $principalUri
-	 *
-	 * @return mixed[]
-	 */
 	public function getDeletedCalendarObjects(string $principalUri): array;
 
 	/**
