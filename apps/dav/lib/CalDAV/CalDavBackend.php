@@ -313,28 +313,29 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			->orderBy('calendarorder', 'ASC');
 
 		if ($principalUri === '') {
-			$query->andWhere($query->expr()->emptyString('principaluri'));
+			$query->where($query->expr()->emptyString('principaluri'));
 		} else {
-			$query->andWhere($query->expr()->eq('principaluri', $query->createNamedParameter($principalUri)));
+			$query->where($query->expr()->eq('principaluri', $query->createNamedParameter($principalUri)));
 		}
 
 		$result = $query->executeQuery();
+
 		$calendars = [];
 		while ($row = $result->fetch()) {
-			$row['principaluri'] = (string)$row['principaluri'];
+			$row['principaluri'] = (string) $row['principaluri'];
 			$components = [];
 			if ($row['components']) {
-				$components = explode(',', $row['components']);
+				$components = explode(',',$row['components']);
 			}
 
 			$calendar = [
 				'id' => $row['id'],
 				'uri' => $row['uri'],
 				'principaluri' => $this->convertPrincipal($row['principaluri'], !$this->legacyEndpoint),
-				'{' . Plugin::NS_CALENDARSERVER . '}getctag' => 'http://sabre.io/ns/sync/' . ($row['synctoken'] ? $row['synctoken'] : '0'),
-				'{http://sabredav.org/ns}sync-token' => $row['synctoken'] ? $row['synctoken'] : '0',
+				'{' . Plugin::NS_CALENDARSERVER . '}getctag' => 'http://sabre.io/ns/sync/' . ($row['synctoken']?$row['synctoken']:'0'),
+				'{http://sabredav.org/ns}sync-token' => $row['synctoken']?$row['synctoken'] : '0',
 				'{' . Plugin::NS_CALDAV . '}supported-calendar-component-set' => new SupportedCalendarComponentSet($components),
-				'{' . Plugin::NS_CALDAV . '}schedule-calendar-transp' => new ScheduleCalendarTransp($row['transparent'] ? 'transparent' : 'opaque'),
+				'{' . Plugin::NS_CALDAV . '}schedule-calendar-transp' => new ScheduleCalendarTransp($row['transparent']?'transparent':'opaque'),
 				'{' . \OCA\DAV\DAV\Sharing\Plugin::NS_OWNCLOUD . '}owner-principal' => $this->convertPrincipal($principalUri, !$this->legacyEndpoint),
 			];
 
@@ -350,7 +351,6 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			}
 		}
 		$result->closeCursor();
-		$calendars = array_values($calendars);
 
 		// query for shared calendars
 		$principals = $this->principalBackend->getGroupMembership($principalUriOriginal, true);
@@ -379,12 +379,12 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 
 		$readOnlyPropertyName = '{' . \OCA\DAV\DAV\Sharing\Plugin::NS_OWNCLOUD . '}read-only';
 		while ($row = $result->fetch()) {
-			$row['principaluri'] = (string)$row['principaluri'];
+			$row['principaluri'] = (string) $row['principaluri'];
 			if ($row['principaluri'] === $principalUri) {
 				continue;
 			}
 
-			$readOnly = (int)$row['access'] === Backend::ACCESS_READ;
+			$readOnly = (int) $row['access'] === Backend::ACCESS_READ;
 			if (isset($calendars[$row['id']])) {
 				if ($readOnly) {
 					// New share can not have more permissions then the old one.
@@ -402,14 +402,14 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			$row['displayname'] = $row['displayname'] . ' (' . $this->getUserDisplayName($name) . ')';
 			$components = [];
 			if ($row['components']) {
-				$components = explode(',', $row['components']);
+				$components = explode(',',$row['components']);
 			}
 			$calendar = [
 				'id' => $row['id'],
 				'uri' => $uri,
 				'principaluri' => $this->convertPrincipal($principalUri, !$this->legacyEndpoint),
-				'{' . Plugin::NS_CALENDARSERVER . '}getctag' => 'http://sabre.io/ns/sync/' . ($row['synctoken'] ? $row['synctoken'] : '0'),
-				'{http://sabredav.org/ns}sync-token' => $row['synctoken'] ? $row['synctoken'] : '0',
+				'{' . Plugin::NS_CALENDARSERVER . '}getctag' => 'http://sabre.io/ns/sync/' . ($row['synctoken']?$row['synctoken']:'0'),
+				'{http://sabredav.org/ns}sync-token' => $row['synctoken']?$row['synctoken']:'0',
 				'{' . Plugin::NS_CALDAV . '}supported-calendar-component-set' => new SupportedCalendarComponentSet($components),
 				'{' . Plugin::NS_CALDAV . '}schedule-calendar-transp' => new ScheduleCalendarTransp('transparent'),
 				'{' . \OCA\DAV\DAV\Sharing\Plugin::NS_OWNCLOUD . '}owner-principal' => $this->convertPrincipal($row['principaluri'], !$this->legacyEndpoint),
@@ -1450,7 +1450,6 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$componentType = null;
 		$requirePostFilter = true;
 		$timeRange = null;
-		$findDeleted = false;
 
 		// if no filters were specified, we don't need to filter after a query
 		if (!$filters['prop-filters'] && !$filters['comp-filters']) {
@@ -1475,10 +1474,6 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 					$requirePostFilter = false;
 				}
 			}
-			// There was a filter for deleted objects
-			if ($componentType === 'VEVENT' && isset($filters['comp-filters'][0]['deleted']) && is_array($filters['comp-filters'][0]['deleted'])) {
-				$findDeleted = true;
-			}
 		}
 		$columns = ['uri'];
 		if ($requirePostFilter) {
@@ -1489,7 +1484,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			->from('calendarobjects')
 			->where($query->expr()->eq('calendarid', $query->createNamedParameter($calendarId)))
 			->andWhere($query->expr()->eq('calendartype', $query->createNamedParameter($calendarType)))
-			->andWhere($findDeleted ? $query->expr()->isNotNull('deleted_at') : $query->expr()->isNull('deleted_at'));
+			->andWhere($query->expr()->isNull('deleted_at'));
 
 		if ($componentType) {
 			$query->andWhere($query->expr()->eq('componenttype', $query->createNamedParameter($componentType)));
