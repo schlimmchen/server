@@ -45,6 +45,7 @@ declare(strict_types=1);
 
 namespace OCA\DAV\CalDAV\Trashbin;
 
+use OCA\DAV\CalDAV\CalDavBackend;
 use OCA\DAV\CalDAV\Calendar;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
@@ -53,13 +54,12 @@ use Sabre\DAV\IMoveTarget;
 use Sabre\DAV\INode;
 
 class RestoreTarget implements ICollection, IMoveTarget {
-
 	public const NAME = 'restore';
 
-	/** @var TrashbinSupport */
+	/** @var CalDavBackend */
 	private $caldavBackend;
 
-	public function __construct(TrashbinSupport $caldavBackend) {
+	public function __construct(CalDavBackend $caldavBackend) {
 		$this->caldavBackend = $caldavBackend;
 	}
 

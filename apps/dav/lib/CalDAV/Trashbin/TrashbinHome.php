@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\DAV\CalDAV\Trashbin;
 
+use OCA\DAV\CalDAV\CalDavBackend;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
 use Sabre\DAV\ICollection;
@@ -32,16 +33,15 @@ use Sabre\DAV\INode;
 use function in_array;
 
 class TrashbinHome implements ICollection {
-
 	public const NAME = 'trashbin';
 
-	/** @var TrashbinSupport */
+	/** @var CalDavBackend */
 	private $caldavBackend;
 
 	/** @var array */
 	private $principalInfo;
 
-	public function __construct(TrashbinSupport $caldavBackend,
+	public function __construct(CalDavBackend $caldavBackend,
 								array $principalInfo) {
 		$this->caldavBackend = $caldavBackend;
 		$this->principalInfo = $principalInfo;

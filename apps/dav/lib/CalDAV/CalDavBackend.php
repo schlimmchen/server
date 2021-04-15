@@ -39,8 +39,6 @@
 namespace OCA\DAV\CalDAV;
 
 use DateTime;
-use OCA\DAV\CalDAV\Trashbin\DeletedCalendarObject;
-use OCA\DAV\CalDAV\Trashbin\TrashbinSupport;
 use OCA\DAV\Connector\Sabre\Principal;
 use OCA\DAV\DAV\Sharing\Backend;
 use OCA\DAV\DAV\Sharing\IShareable;
@@ -76,7 +74,6 @@ use Sabre\CalDAV\Xml\Property\SupportedCalendarComponentSet;
 use Sabre\DAV;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
-use Sabre\DAV\INode;
 use Sabre\DAV\PropPatch;
 use Sabre\Uri;
 use Sabre\VObject\Component;
@@ -105,7 +102,7 @@ use function time;
  *
  * @package OCA\DAV\CalDAV
  */
-class CalDavBackend extends AbstractBackend implements SyncSupport, SubscriptionSupport, SchedulingSupport, TrashbinSupport {
+class CalDavBackend extends AbstractBackend implements SyncSupport, SubscriptionSupport, SchedulingSupport {
 	public const CALENDAR_TYPE_CALENDAR = 0;
 	public const CALENDAR_TYPE_SUBSCRIPTION = 1;
 

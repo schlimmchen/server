@@ -29,11 +29,9 @@
 namespace OCA\DAV;
 
 use OC\KnownUser\KnownUserService;
-use OCA\DAV\AppInfo\Application;
 use OCA\DAV\AppInfo\PluginManager;
 use OCA\DAV\CalDAV\CalDavBackend;
 use OCA\DAV\CalDAV\CalendarRoot;
-use OCA\DAV\CalDAV\CalendarTrashbinRoot;
 use OCA\DAV\CalDAV\Principal\Collection;
 use OCA\DAV\CalDAV\Proxy\ProxyMapper;
 use OCA\DAV\CalDAV\PublicCalendarRoot;
@@ -49,9 +47,6 @@ use OCA\DAV\Upload\CleanupService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
-use OCP\IConfig;
-use OCP\IUserSession;
-use OCP\L10N\IFactory as IL10nFactory;
 use Sabre\DAV\SimpleCollection;
 
 class RootCollection extends SimpleCollection {
