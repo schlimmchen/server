@@ -25,10 +25,12 @@ declare(strict_types=1);
 
 namespace OCA\DAV\CalDAV\Trashbin;
 
+use OCA\DAV\CalDAV\CalDavBackend;
+use OCA\DAV\CalDAV\IRestorable;
 use Sabre\CalDAV\ICalendarObject;
 use Sabre\DAV\Exception\Forbidden;
 
-class DeletedCalendarObject implements ICalendarObject {
+class DeletedCalendarObject implements ICalendarObject, IRestorable {
 
 	/** @var string */
 	private $name;
@@ -36,18 +38,19 @@ class DeletedCalendarObject implements ICalendarObject {
 	/** @var mixed[] */
 	private $objectData;
 
+	/** @var CalDavBackend */
+	private $calDavBackend;
+
 	public function __construct(string $name,
-								array $objectData) {
+								array $objectData,
+								CalDavBackend $calDavBackend) {
 		$this->name = $name;
 		$this->objectData = $objectData;
+		$this->calDavBackend = $calDavBackend;
 	}
 
 	public function delete() {
 		throw new Forbidden();
-	}
-
-	public function getId(): int {
-		return (int) $this->objectData['id'];
 	}
 
 	public function getName() {
@@ -85,5 +88,9 @@ class DeletedCalendarObject implements ICalendarObject {
 
 	public function getSize() {
 		return (int) $this->objectData['size'];
+	}
+
+	public function restore(): void {
+		$this->calDavBackend->restoreCalendarObject((int) $this->objectData['id']);
 	}
 }

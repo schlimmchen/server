@@ -72,7 +72,8 @@ class DeletedCalendarObjectsCollection implements ICalendarObjectContainer {
 
 		return new DeletedCalendarObject(
 			$this->getRelativeObjectPath($data),
-			$data
+			$data,
+			$this->caldavBackend
 		);
 	}
 
