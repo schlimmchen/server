@@ -1394,6 +1394,20 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			->set('deleted_at', $qb->createNamedParameter(null))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT));
 		$update->executeUpdate();
+
+		// Make sure this change is tracked in the changes table
+		$qb2 = $this->db->getQueryBuilder();
+		$selectObject = $qb2->select('calendardata', 'uri', 'calendarid', 'calendartype')
+			->from('calendarobjects')
+			->where($qb2->expr()->eq('id', $qb2->createNamedParameter($id, IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT));
+		$result = $selectObject->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+		if ($row === false) {
+			// Welp, this should possibly not have happened, but let's ignore
+			return;
+		}
+		$this->addChange($row['calendarid'], $row['uri'], 1, $row['calendartype']);
 	}
 
 	/**
