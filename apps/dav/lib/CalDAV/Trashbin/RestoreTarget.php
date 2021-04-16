@@ -67,6 +67,7 @@ class RestoreTarget implements ICollection, IMoveTarget {
 	public function moveInto($targetName, $sourcePath, INode $sourceNode): bool {
 		if ($sourceNode instanceof IRestorable) {
 			$sourceNode->restore();
+			return true;
 		}
 
 		return false;
