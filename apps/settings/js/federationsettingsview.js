@@ -31,7 +31,7 @@
 			} else {
 				this._config = new OC.Settings.UserSettings();
 			}
-			this.showFederationScopes = !!options.showFederationScopes;
+			this.showLookupServerScopes = !!options.showLookupServerScopes;
 
 			this._inputFields = [
 				'displayname',
@@ -85,8 +85,7 @@
 					excludedScopes.push('v2-private');
 				}
 
-				if (!self.showFederationScopes) {
-					excludedScopes.push('v2-federated');
+				if (!self.showLookupServerScopes) {
 					excludedScopes.push('v2-published');
 				}
 
