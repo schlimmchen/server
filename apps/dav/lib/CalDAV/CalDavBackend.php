@@ -92,7 +92,9 @@ use function array_values;
 use function explode;
 use function is_array;
 use function pathinfo;
+use function preg_match;
 use function sprintf;
+use function str_replace;
 use function strtolower;
 use function time;
 
@@ -1413,9 +1415,26 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$this->addChange($calendarId, $objectUri, 3, $calendarType);
 	}
 
-	public function restoreCalendarObject(int $id): void {
+	/**
+	 * @param int $calendarId
+	 * @param int $id
+	 *
+	 * @throws Forbidden
+	 */
+	public function restoreCalendarObject(array $objectData): void {
+		$id = (int) $objectData['id'];
+		$restoreUri = str_replace("-deleted.ics", ".ics", $objectData['uri']);
+		$targetObject = $this->getCalendarObject(
+			$objectData['calendarid'],
+			$restoreUri
+		);
+		if ($targetObject !== null) {
+			throw new Forbidden("Can not restore calendar $id because a calendar object with the URI $restoreUri already exists");
+		}
+
 		$qb = $this->db->getQueryBuilder();
 		$update = $qb->update('calendarobjects')
+			->set('uri', $qb->createNamedParameter($restoreUri))
 			->set('deleted_at', $qb->createNamedParameter(null))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT));
 		$update->executeUpdate();

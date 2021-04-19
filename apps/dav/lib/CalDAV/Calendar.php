@@ -401,6 +401,6 @@ class Calendar extends \Sabre\CalDAV\Calendar implements IRestorable, IShareable
 	}
 
 	public function restore(): void {
-		$this->caldavBackend->restoreCalendar((int) $this->calendarInfo['id']);
+		$this->caldavBackend->restoreCalendar($this->calendarInfo['principaluri'], (int) $this->calendarInfo['id']);
 	}
 }

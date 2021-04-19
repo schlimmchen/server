@@ -25,6 +25,8 @@ declare(strict_types=1);
 
 namespace OCA\DAV\CalDAV;
 
+use Sabre\DAV\Exception;
+
 /**
  * Interface for nodes that can be restored from the trashbin
  */
@@ -32,6 +34,8 @@ interface IRestorable {
 
 	/**
 	 * Restore this node
+	 *
+	 * @throws Exception
 	 */
 	public function restore(): void;
 
