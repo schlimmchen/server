@@ -76,7 +76,10 @@ class CalendarHome extends \Sabre\CalDAV\CalendarHome {
 	 * @inheritdoc
 	 */
 	public function createExtendedCollection($name, MkCol $mkCol) {
-		$reservedNames = [BirthdayService::BIRTHDAY_CALENDAR_URI];
+		$reservedNames = [
+			BirthdayService::BIRTHDAY_CALENDAR_URI,
+			TrashbinHome::NAME,
+		];
 
 		if (\in_array($name, $reservedNames, true) || ExternalCalendar::doesViolateReservedName($name)) {
 			throw new MethodNotAllowed('The resource you tried to create has a reserved name');
