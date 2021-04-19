@@ -91,6 +91,7 @@ use function array_merge;
 use function array_values;
 use function explode;
 use function is_array;
+use function pathinfo;
 use function sprintf;
 use function strtolower;
 use function time;
@@ -1370,20 +1371,44 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			}
 		}
 
-		// $stmt = $this->db->prepare('DELETE FROM `*PREFIX*calendarobjects` WHERE `calendarid` = ? AND `uri` = ? AND `calendartype` = ?');
+		// $stmt = $this->db->prepare('DELETE FROM `*PREFIX*calendarobjects` WHERE `calendarid` = ? AND `newUri` = ? AND `calendartype` = ?');
 		// $stmt->execute([$calendarId, $objectUri, $calendarType]);
+		$pathInfo = pathinfo($data['newUri']);
+		if (isset($pathInfo['extension']) && !empty($pathInfo['extension'])) {
+			// Append a suffix to "free" the old URI for recreation
+			$newUri = sprintf(
+				"%s-deleted.%s",
+				$pathInfo['filename'],
+				$pathInfo['extension']
+			);
+		} else {
+			$newUri = sprintf(
+				"%s-deleted",
+				$pathInfo['filename']
+			);
+		}
+
+		// Try to detect conflicts before the DB does
+		// As unlikely as it seems, this can happen when the user imports, then deletes, imports and deletes again
+		$newObject = $this->getCalendarObject($calendarId, $newUri, $calendarType);
+		if ($newObject !== null) {
+			throw new Forbidden("A calendar object with URI $newUri already exists in calendar $calendarId, therefore this object can't be moved into the trashbin");
+		}
+
 		$qb = $this->db->getQueryBuilder();
 		$markObjectDeletedQuery = $qb->update('calendarobjects')
 			->set('deleted_at', $qb->createNamedParameter(time(), IQueryBuilder::PARAM_INT))
+			->set('newUri', $qb->createNamedParameter($newUri))
 			->where(
 				$qb->expr()->eq('calendarid', $qb->createNamedParameter($calendarId)),
-				$qb->expr()->eq('calendartype', $qb->createNamedParameter($calendarType))
+				$qb->expr()->eq('calendartype', $qb->createNamedParameter($calendarType, IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT),
+				$qb->expr()->eq('newUri', $qb->createNamedParameter($objectUri))
 			);
 		$markObjectDeletedQuery->executeUpdate();
 
-		if (is_array($data)) {
-			$this->purgeProperties($calendarId, $data['id'], $calendarType);
-		}
+		// if (is_array($data)) {
+		// 	$this->purgeProperties($calendarId, $data['id'], $calendarType);
+		// }
 
 		$this->addChange($calendarId, $objectUri, 3, $calendarType);
 	}
